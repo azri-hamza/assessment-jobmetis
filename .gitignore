@@ -2,12 +2,8 @@
 /jm-front/node_modules/
 /jm-front/dist/
 /jm-front/.angular/
-/jm-front/.env
+/jm-front/src/environments/environment.ts
 
-# Backend
-/jm-back/node_modules/
-/jm-back/dist/
-/jm-back/.env
 
 # OS & IDE junk
 .DS_Store
