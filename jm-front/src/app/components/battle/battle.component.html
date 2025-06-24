@@ -1,0 +1,342 @@
+<div class="container-fluid mt-4">
+  <div class="row">
+    <div class="col-12">
+      <h2 class="text-center mb-4">
+        <i class="bi bi-lightning-charge me-2"></i>
+        Pokémon Battle Arena
+      </h2>
+    </div>
+  </div>
+
+  <!-- Error state -->
+  <div *ngIf="error()" class="alert alert-danger" role="alert">
+    {{ error() }}
+  </div>
+
+  <!-- Loading state -->
+  <div *ngIf="loading()" class="text-center">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2">Loading teams...</p>
+  </div>
+
+  <!-- Team Selection -->
+  <div *ngIf="!loading() && !battleResult()" class="row">
+    <div class="col-12">
+      <h4 class="text-center mb-4">Select Teams for Battle</h4>
+    </div>
+    
+    <!-- Team 1 Selection -->
+    <div class="col-md-6">
+      <h5 class="text-center mb-3">
+        <span class="badge bg-primary">Team 1</span>
+      </h5>
+      
+      <div *ngIf="selectedTeam1()" class="card border-primary mb-3">
+        <div class="card-header bg-primary text-white text-center">
+          <h6 class="mb-0">{{ selectedTeam1()!.name }}</h6>
+          <small>Power: {{ selectedTeam1()!.power }}</small>
+        </div>
+        <div class="card-body p-2">
+          <div class="row g-1">
+            <div class="col-4" *ngFor="let pokemon of selectedTeam1()!.pokemon">
+              <div class="text-center">
+                <img [src]="pokemon.image" [alt]="pokemon.name" 
+                     class="img-fluid rounded" 
+                     style="max-height: 60px; object-fit: contain;">
+                <div class="small mt-1">
+                  <div class="fw-bold text-capitalize">{{ pokemon.name }}</div>
+                  <div class="text-muted">{{ pokemon.life }} HP</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="row g-2">
+        <div class="col-12" *ngFor="let team of availableTeams()">
+          <button 
+            class="btn w-100 text-start"
+            [class.btn-primary]="selectedTeam1()?.id === team.id"
+            [class.btn-outline-primary]="selectedTeam1()?.id !== team.id"
+            (click)="selectTeam1(team)">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <div class="fw-bold">{{ team.name }}</div>
+                <small class="text-muted">{{ team.pokemon.length }} Pokémon • Power: {{ team.power }}</small>
+              </div>
+              <i class="bi bi-check-circle" *ngIf="selectedTeam1()?.id === team.id"></i>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Team 2 Selection -->
+    <div class="col-md-6">
+      <h5 class="text-center mb-3">
+        <span class="badge bg-danger">Team 2</span>
+      </h5>
+      
+      <div *ngIf="selectedTeam2()" class="card border-danger mb-3">
+        <div class="card-header bg-danger text-white text-center">
+          <h6 class="mb-0">{{ selectedTeam2()!.name }}</h6>
+          <small>Power: {{ selectedTeam2()!.power }}</small>
+        </div>
+        <div class="card-body p-2">
+          <div class="row g-1">
+            <div class="col-4" *ngFor="let pokemon of selectedTeam2()!.pokemon">
+              <div class="text-center">
+                <img [src]="pokemon.image" [alt]="pokemon.name" 
+                     class="img-fluid rounded" 
+                     style="max-height: 60px; object-fit: contain;">
+                <div class="small mt-1">
+                  <div class="fw-bold text-capitalize">{{ pokemon.name }}</div>
+                  <div class="text-muted">{{ pokemon.life }} HP</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="row g-2">
+        <div class="col-12" *ngFor="let team of availableTeams()">
+          <button 
+            class="btn w-100 text-start"
+            [class.btn-danger]="selectedTeam2()?.id === team.id"
+            [class.btn-outline-danger]="selectedTeam2()?.id !== team.id"
+            (click)="selectTeam2(team)">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <div class="fw-bold">{{ team.name }}</div>
+                <small class="text-muted">{{ team.pokemon.length }} Pokémon • Power: {{ team.power }}</small>
+              </div>
+              <i class="bi bi-check-circle" *ngIf="selectedTeam2()?.id === team.id"></i>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Start Battle Button -->
+    <div class="col-12 text-center mt-4">
+      <button 
+        class="btn btn-success btn-lg"
+        [disabled]="!selectedTeam1() || !selectedTeam2() || selectedTeam1()?.id === selectedTeam2()?.id || isBattling()"
+        (click)="startBattle()">
+        <span *ngIf="isBattling()" class="spinner-border spinner-border-sm me-2" role="status"></span>
+        <i *ngIf="!isBattling()" class="bi bi-play-fill me-2"></i>
+        {{ isBattling() ? 'Starting Battle...' : 'Start Battle' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Battle Arena -->
+  <div *ngIf="battleResult()" class="battle-arena">
+    <!-- Team Pokemon Overview -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card bg-dark text-white">
+          <div class="card-body p-3">
+            <div class="row">
+              <!-- Team 1 -->
+              <div class="col-6">
+                <div class="text-center mb-2">
+                  <span class="badge bg-primary fs-6">{{ battleResult()!.team1.name }}</span>
+                </div>
+                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                  <div *ngFor="let pokemon of battleResult()!.team1.pokemon; let i = index" 
+                       class="position-relative">
+                    <div class="pokemon-container position-relative">
+                      <img [src]="pokemon.image" [alt]="pokemon.name" 
+                           class="rounded-circle border border-2 border-primary"
+                           style="width: 60px; height: 60px; object-fit: contain; background: white;"
+                           [style.opacity]="isPokemonActive(pokemon, 'team1', i) ? '1' : '0.6'"
+                           [class.defeated-pokemon]="isPokemonDefeated(pokemon, 'team1', i)">
+                      <!-- Defeated overlay -->
+                      <div *ngIf="isPokemonDefeated(pokemon, 'team1', i)" 
+                           class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+                           style="background: rgba(0,0,0,0.4); border-radius: 50%;">
+                        <i class="bi bi-x-lg text-danger" style="font-size: 24px; font-weight: bold;"></i>
+                      </div>
+                    </div>
+                    <div *ngIf="isPokemonActive(pokemon, 'team1', i)"
+                         class="position-absolute top-0 start-100 translate-middle">
+                      <span class="badge bg-warning rounded-pill">Active</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Team 2 -->
+              <div class="col-6">
+                <div class="text-center mb-2">
+                  <span class="badge bg-danger fs-6">{{ battleResult()!.team2.name }}</span>
+                </div>
+                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                  <div *ngFor="let pokemon of battleResult()!.team2.pokemon; let i = index" 
+                       class="position-relative">
+                    <div class="pokemon-container position-relative">
+                      <img [src]="pokemon.image" [alt]="pokemon.name" 
+                           class="rounded-circle border border-2 border-danger"
+                           style="width: 60px; height: 60px; object-fit: contain; background: white;"
+                           [style.opacity]="isPokemonActive(pokemon, 'team2', i) ? '1' : '0.6'"
+                           [class.defeated-pokemon]="isPokemonDefeated(pokemon, 'team2', i)">
+                      <!-- Defeated overlay -->
+                      <div *ngIf="isPokemonDefeated(pokemon, 'team2', i)" 
+                           class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+                           style="background: rgba(0,0,0,0.1); border-radius: 50%;">
+                        <i class="bi bi-x-lg text-danger" style="font-size: 24px; font-weight: bold;"></i>
+                      </div>
+                    </div>
+                    <div *ngIf="isPokemonActive(pokemon, 'team2', i)"
+                         class="position-absolute top-0 start-100 translate-middle">
+                      <span class="badge bg-warning rounded-pill">Active</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Round Navigation -->
+    <div class="row mb-3">
+      <div class="col-12 text-center">
+        <div class="btn-group" role="group">
+          <button 
+            class="btn btn-outline-secondary"
+            [disabled]="!canGoPrevious()"
+            (click)="previousRound()">
+            <i class="bi bi-chevron-left"></i> Previous
+          </button>
+          
+          <span class="btn btn-dark disabled">
+            <span *ngIf="!battleCompleted()">Round {{ currentRoundIndex() + 1 }}</span>
+            <span *ngIf="battleCompleted()">Battle Complete</span>
+          </span>
+          
+          <button 
+            class="btn btn-outline-secondary"
+            [disabled]="!canGoNext()"
+            (click)="nextRound()">
+            Next <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Current Round Display -->
+    <div *ngIf="getCurrentRound()" class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body p-4">
+            <div class="row align-items-center">
+              <!-- Pokemon 1 -->
+              <div class="col-md-5">
+                <div class="card border-primary h-100">
+                  <div class="card-body text-center">
+                    <img [src]="getCurrentRound()!.pokemon1.image" 
+                         [alt]="getCurrentRound()!.pokemon1.name"
+                         class="img-fluid mb-3"
+                         style="max-height: 150px; object-fit: contain;">
+                    <h5 class="text-capitalize mb-2">{{ getCurrentRound()!.pokemon1.name }}</h5>
+                    
+                    <!-- Life Bar -->
+                    <div class="mb-3">
+                      <div class="progress mb-1" style="height: 25px;">
+                        <div class="progress-bar" 
+                             [class]="getLifeBarClass(getLifePercentage(Math.max(0, getCurrentRound()!.pokemon1LifeAfter), getCurrentRound()!.pokemon1.originalLife))"
+                             [style.width.%]="getLifePercentage(Math.max(0, getCurrentRound()!.pokemon1LifeAfter), getCurrentRound()!.pokemon1.originalLife)">
+                          {{ Math.max(0, getCurrentRound()!.pokemon1LifeAfter) }}
+                        </div>
+                      </div>
+                      <small class="text-muted">{{ Math.max(0, getCurrentRound()!.pokemon1LifeAfter) }} / {{ getCurrentRound()!.pokemon1.originalLife }} HP</small>
+                    </div>
+
+                    <div *ngIf="getCurrentRound()!.pokemon1LifeAfter <= 0" class="text-danger">
+                      <i class="bi bi-x-circle"></i> Defeated!
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- VS Section -->
+              <div class="col-md-2 text-center">
+                <h2 class="text-muted mb-3">VS</h2>
+                <div class="mb-3">
+                  <div *ngIf="getCurrentRound()!.winner === 'pokemon1'" class="text-primary">
+                    <i class="bi bi-arrow-left display-6"></i>
+                    <br><small class="fw-bold">Winner</small>
+                  </div>
+                  <div *ngIf="getCurrentRound()!.winner === 'pokemon2'" class="text-danger">
+                    <i class="bi bi-arrow-right display-6"></i>
+                    <br><small class="fw-bold">Winner</small>
+                  </div>
+                  <div *ngIf="getCurrentRound()!.winner === 'draw'" class="text-warning">
+                    <i class="bi bi-dash display-6"></i>
+                    <br><small class="fw-bold">Draw</small>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Pokemon 2 -->
+              <div class="col-md-5">
+                <div class="card border-danger h-100">
+                  <div class="card-body text-center">
+                    <img [src]="getCurrentRound()!.pokemon2.image" 
+                         [alt]="getCurrentRound()!.pokemon2.name"
+                         class="img-fluid mb-3"
+                         style="max-height: 150px; object-fit: contain;">
+                    <h5 class="text-capitalize mb-2">{{ getCurrentRound()!.pokemon2.name }}</h5>
+                    
+                    <!-- Life Bar -->
+                    <div class="mb-3">
+                      <div class="progress mb-1" style="height: 25px;">
+                        <div class="progress-bar" 
+                             [class]="getLifeBarClass(getLifePercentage(Math.max(0, getCurrentRound()!.pokemon2LifeAfter), getCurrentRound()!.pokemon2.originalLife))"
+                             [style.width.%]="getLifePercentage(Math.max(0, getCurrentRound()!.pokemon2LifeAfter), getCurrentRound()!.pokemon2.originalLife)">
+                          {{ Math.max(0, getCurrentRound()!.pokemon2LifeAfter) }}
+                        </div>
+                      </div>
+                      <small class="text-muted">{{ Math.max(0, getCurrentRound()!.pokemon2LifeAfter) }} / {{ getCurrentRound()!.pokemon2.originalLife }} HP</small>
+                    </div>
+
+                    <div *ngIf="getCurrentRound()!.pokemon2LifeAfter <= 0" class="text-danger">
+                      <i class="bi bi-x-circle"></i> Defeated!
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Battle Result -->
+    <div *ngIf="battleCompleted()" class="row mt-4">
+      <div class="col-12 text-center">
+        <div class="card bg-success text-white">
+          <div class="card-body">
+            <h3>
+              <i class="bi bi-trophy-fill me-2"></i>
+              Battle Complete!
+            </h3>
+            <h4>Winner: {{ battleResult()!.winnerTeam.name }}</h4>
+            <p>Total rounds: {{ battleResult()!.rounds.length }}</p>
+            <button class="btn btn-light btn-lg mt-2" (click)="newBattle()">
+              <i class="bi bi-arrow-repeat me-2"></i>
+              New Battle
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

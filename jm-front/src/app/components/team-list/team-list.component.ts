@@ -1,5 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { Team, TeamService } from '../../services/team.service';
 import { PokemonTypeService } from '../../services/pokemon-type.service';
 import { TeamFormComponent } from '../team-form/team-form.component';
@@ -19,7 +20,7 @@ interface TeamWithTypeNames extends Omit<Team, 'pokemon'> {
 @Component({
   selector: 'app-team-list',
   standalone: true,
-  imports: [CommonModule, TeamFormComponent],
+  imports: [CommonModule, RouterModule, TeamFormComponent],
   templateUrl: './team-list.component.html',
   styleUrls: ['./team-list.component.scss']
 })

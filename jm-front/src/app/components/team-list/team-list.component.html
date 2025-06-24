@@ -1,10 +1,16 @@
 <div class="container mt-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h2 class="mb-0">Pokémon Teams</h2>
-    <button class="btn btn-primary" (click)="openCreateModal()">
-      <i class="bi bi-plus-circle me-2"></i>
-      Add Team
-    </button>
+    <div class="btn-group">
+      <button class="btn btn-primary" (click)="openCreateModal()">
+        <i class="bi bi-plus-circle me-2"></i>
+        Add Team
+      </button>
+      <a class="btn btn-success" routerLink="/battle">
+        <i class="bi bi-lightning-charge me-2"></i>
+        Battle Arena
+      </a>
+    </div>
   </div>
   
   <!-- Error state -->
