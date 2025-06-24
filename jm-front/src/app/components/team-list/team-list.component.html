@@ -1,0 +1,67 @@
+<div class="container mt-4">
+  <h2 class="mb-3">Pokémon Teams</h2>
+  
+  <!-- Error state -->
+  <div *ngIf="error()" class="alert alert-danger" role="alert">
+    {{ error() }}
+    <button class="btn btn-sm btn-outline-danger ms-2" (click)="retry()">
+      Retry
+    </button>
+  </div>
+  
+  <!-- Loading state -->
+  <div *ngIf="loading()" class="text-center">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2">Loading teams...</p>
+  </div>
+  
+  <!-- Teams list -->
+  <div *ngIf="!loading() && !error() && teams().length > 0">
+    <div class="row g-4">
+      <div class="col-12 col-md-6 col-lg-4" *ngFor="let team of teams()">
+        <div class="card h-100 shadow-sm">
+          <div class="card-header bg-primary text-white">
+            <h5 class="card-title mb-0">{{ team.name }}</h5>
+            <small class="text-light">Total Power: {{ team.power }}</small>
+          </div>
+          <div class="card-body">
+            <h6 class="card-subtitle mb-3 text-muted">Team Members</h6>
+            
+            <!-- Pokemon list within team -->
+            <div *ngIf="team.pokemon.length > 0" class="row g-2">
+              <div class="col-6" *ngFor="let pokemon of team.pokemon">
+                <div class="card border-0 bg-light">
+                  <img [src]="pokemon.image" [alt]="pokemon.name" 
+                       class="card-img-top rounded img-fluid" 
+                       style="max-height: 80px; object-fit: contain;" />
+                  <div class="card-body p-2">
+                    <h6 class="card-title text-capitalize mb-1" style="font-size: 0.9rem;">
+                      {{ pokemon.name }}
+                    </h6>
+                    <div class="small text-muted">
+                      <div>Type: {{ pokemon.type }}</div>
+                      <div>Power: {{ pokemon.power }}</div>
+                      <div>Life: {{ pokemon.life }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Empty team state -->
+            <div *ngIf="team.pokemon.length === 0" class="text-center text-muted">
+              <p class="mb-0">No Pokémon in this team</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- No data state -->
+  <div *ngIf="!loading() && !error() && teams().length === 0" class="text-center">
+    <p>No teams found in the database.</p>
+  </div>
+</div> 

@@ -1,13 +1,13 @@
 import { Component } from '@angular/core';
-import { PokemonListComponent } from './components/pokemon-list/pokemon-list.component';
+import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
     selector: 'app-root',
-    imports: [PokemonListComponent],
+    imports: [RouterOutlet, RouterLink, RouterLinkActive],
     templateUrl: './app.component.html',
     styleUrl: './app.component.scss',
     standalone: true
   })
 export class AppComponent {
-  title = 'Pokémon List';
+  title = 'Pokémon Manager';
 }
