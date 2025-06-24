@@ -1,5 +1,11 @@
 <div class="container mt-4">
-  <h2 class="mb-3">Pokémon Teams</h2>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Pokémon Teams</h2>
+    <button class="btn btn-primary" (click)="openCreateModal()">
+      <i class="bi bi-plus-circle me-2"></i>
+      Add Team
+    </button>
+  </div>
   
   <!-- Error state -->
   <div *ngIf="error()" class="alert alert-danger" role="alert">
@@ -61,7 +67,20 @@
   </div>
   
   <!-- No data state -->
-  <div *ngIf="!loading() && !error() && teams().length === 0" class="text-center">
-    <p>No teams found in the database.</p>
+  <div *ngIf="!loading() && !error() && teams().length === 0" class="text-center py-5">
+    <i class="bi bi-people display-1 text-muted mb-3"></i>
+    <h4 class="text-muted mb-3">No teams found</h4>
+    <p class="text-muted mb-4">Create your first Pokémon team to get started!</p>
+    <button class="btn btn-primary btn-lg" (click)="openCreateModal()">
+      <i class="bi bi-plus-circle me-2"></i>
+      Create Your First Team
+    </button>
   </div>
-</div> 
+</div>
+
+<!-- Team Form Modal -->
+<app-team-form
+  [showModal]="showCreateModal()"
+  (modalClosed)="closeCreateModal()"
+  (teamCreated)="onTeamCreated($event)">
+</app-team-form> 

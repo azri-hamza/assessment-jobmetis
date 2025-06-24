@@ -2,6 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Team, TeamService } from '../../services/team.service';
 import { PokemonTypeService } from '../../services/pokemon-type.service';
+import { TeamFormComponent } from '../team-form/team-form.component';
 
 interface TeamWithTypeNames extends Omit<Team, 'pokemon'> {
   pokemon: Array<{
@@ -18,7 +19,7 @@ interface TeamWithTypeNames extends Omit<Team, 'pokemon'> {
 @Component({
   selector: 'app-team-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TeamFormComponent],
   templateUrl: './team-list.component.html',
   styleUrls: ['./team-list.component.scss']
 })
@@ -26,6 +27,9 @@ export class TeamListComponent implements OnInit {
   teams = signal<TeamWithTypeNames[]>([]);
   loading = signal<boolean>(true);
   error = signal<string | null>(null);
+  
+  // Modal state
+  showCreateModal = signal<boolean>(false);
 
   constructor(
     private readonly teamService: TeamService,
@@ -33,6 +37,10 @@ export class TeamListComponent implements OnInit {
   ) {}
 
   async ngOnInit(): Promise<void> {
+    await this.loadTeams();
+  }
+
+  async loadTeams(): Promise<void> {
     try {
       this.loading.set(true);
       this.error.set(null);
@@ -72,6 +80,20 @@ export class TeamListComponent implements OnInit {
   }
 
   async retry(): Promise<void> {
-    await this.ngOnInit();
+    await this.loadTeams();
+  }
+
+  openCreateModal(): void {
+    this.showCreateModal.set(true);
+  }
+
+  closeCreateModal(): void {
+    this.showCreateModal.set(false);
+  }
+
+  async onTeamCreated(newTeam: Team): Promise<void> {
+    console.log('New team created:', newTeam);
+    // Reload teams to include the new one
+    await this.loadTeams();
   }
 } 

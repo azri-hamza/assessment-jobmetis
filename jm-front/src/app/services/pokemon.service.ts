@@ -37,6 +37,32 @@ export class PokemonService {
     }
   }
 
+  async searchPokemonByName(searchTerm: string): Promise<Pokemon[]> {
+    try {
+      if (!searchTerm || searchTerm.trim().length === 0) {
+        return [];
+      }
+
+      const { data, error } = await supabase
+        .from('pokemon')
+        .select('id, name, image, power, life, type')
+        .ilike('name', `%${searchTerm.trim()}%`)
+        .order('name')
+        .limit(10);
+
+      if (error) {
+        console.error('Supabase search error:', error);
+        throw new Error(`Failed to search Pokémon: ${error.message}`);
+      }
+
+      return data as Pokemon[];
+      
+    } catch (error) {
+      console.error('Service search error:', error);
+      throw error;
+    }
+  }
+
   async updatePokemon(id: number, pokemonData: Partial<Pokemon>): Promise<Pokemon> {
     try {
       const { data, error } = await supabase

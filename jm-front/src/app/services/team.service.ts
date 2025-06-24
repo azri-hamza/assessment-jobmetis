@@ -98,6 +98,99 @@ export class TeamService {
     }
   }
 
+  async createTeam(teamName: string, pokemonIds: number[]): Promise<Team> {
+    try {
+      // Call the PostgreSQL function insert_pokemon_team
+      const { data, error } = await supabase.rpc('insert_pokemon_team', {
+        team_name: teamName,
+        pokemon_ids: pokemonIds
+      });
+
+      if (error) {
+        console.error('Supabase error creating team:', error);
+        throw new Error(`Failed to create team: ${error.message}`);
+      }
+
+      console.log('Team created successfully:', data);
+      
+      // Return the newly created team data
+      // The function should return the team data, but let's fetch it to be sure
+      if (data && data.team_id) {
+        return await this.getTeamById(data.team_id);
+      }
+      
+      // Fallback: refresh teams and return the latest one
+      const teams = await this.getAllTeams();
+      return teams[teams.length - 1];
+      
+    } catch (error) {
+      console.error('Service error creating team:', error);
+      throw error;
+    }
+  }
+
+  private async getTeamById(teamId: string): Promise<Team> {
+    try {
+      const { data: teamData, error: teamError } = await supabase
+        .from('team')
+        .select('id, name, created_at')
+        .eq('id', teamId)
+        .single();
+
+      if (teamError) {
+        throw new Error(`Failed to fetch team: ${teamError.message}`);
+      }
+
+      // Get team Pokemon
+      const { data: teamPokemonData, error: teamPokemonError } = await supabase
+        .from('team_pokemon')
+        .select(`
+          pokemon_id,
+          position,
+          pokemon (
+            id,
+            name,
+            image,
+            power,
+            life,
+            type
+          )
+        `)
+        .eq('team_id', teamId)
+        .order('position');
+
+      let pokemon: Pokemon[] = [];
+      let totalPower = 0;
+      
+      if (!teamPokemonError && teamPokemonData) {
+        pokemon = teamPokemonData
+          .map((tp: any) => tp.pokemon)
+          .filter((p: any) => p !== null)
+          .map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            image: p.image,
+            power: p.power,
+            life: p.life,
+            type: p.type
+          })) as Pokemon[];
+        
+        totalPower = pokemon.reduce((sum, p) => sum + p.power, 0);
+      }
+
+      return {
+        id: teamData.id,
+        name: teamData.name,
+        power: totalPower,
+        pokemon: pokemon
+      };
+      
+    } catch (error) {
+      console.error('Error fetching team by ID:', error);
+      throw error;
+    }
+  }
+
   private getMockTeams(): Team[] {
     return [
       {
