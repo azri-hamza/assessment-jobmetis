@@ -1,0 +1,15 @@
+# Frontend
+/jm-front/node_modules/
+/jm-front/dist/
+/jm-front/.angular/
+/jm-front/.env
+
+# Backend
+/jm-back/node_modules/
+/jm-back/dist/
+/jm-back/.env
+
+# OS & IDE junk
+.DS_Store
+*.log
+.env
