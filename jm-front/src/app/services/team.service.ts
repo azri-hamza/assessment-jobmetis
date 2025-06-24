@@ -15,77 +15,42 @@ export interface Team {
 export class TeamService {
   async getAllTeams(): Promise<Team[]> {
     try {
-      // Fetch teams from the team table (without power column)
-      const { data: teamsData, error: teamsError } = await supabase
-        .from('team')
-        .select('id, name, created_at')
-        .order('name');
+      // Use PostgreSQL function get_teams_by_power to fetch teams ordered by power
+      const { data: teamsData, error: teamsError } = await supabase.rpc('get_teams_by_power');
 
       if (teamsError) {
-        console.error('Supabase error fetching teams:', teamsError);
+        console.error('Supabase error fetching teams with get_teams_by_power:', teamsError);
         
-        // If table doesn't exist, return mock data
-        if (teamsError.message.includes('does not exist')) {
-          console.log('Teams table not found, returning mock data');
+        // If function doesn't exist, return mock data
+        if (teamsError.message.includes('does not exist') || teamsError.message.includes('function')) {
+          console.log('get_teams_by_power function not found, returning mock data');
           return this.getMockTeams();
         }
         
         throw new Error(`Failed to fetch teams: ${teamsError.message}`);
       }
 
-      console.log('Teams fetched successfully:', teamsData);
+      console.log('Teams fetched successfully using get_teams_by_power:', teamsData);
 
-      // Now fetch Pokemon for each team
-      const teams: Team[] = [];
-      
-      for (const team of teamsData || []) {
-        // Get team Pokemon from team_pokemon junction table with correct foreign key names
-        const { data: teamPokemonData, error: teamPokemonError } = await supabase
-          .from('team_pokemon')
-          .select(`
-            pokemon_id,
-            position,
-            pokemon (
-              id,
-              name,
-              image,
-              power,
-              life,
-              type
-            )
-          `)
-          .eq('team_id', team.id)
-          .order('position');
+      // Transform the data from the PostgreSQL function to match our Team interface
+      const teams: Team[] = (teamsData || []).map((teamData: any) => {
+        // Extract Pokemon data from the pokemon_details JSONB field
+        const pokemon: Pokemon[] = (teamData.pokemon_details || []).map((pokemonDetail: any) => ({
+          id: pokemonDetail.pokemon_id,
+          name: pokemonDetail.pokemon_name,
+          image: pokemonDetail.image,
+          power: pokemonDetail.power,
+          life: pokemonDetail.life,
+          type: pokemonDetail.type_name
+        }));
 
-        let pokemon: Pokemon[] = [];
-        let totalPower = 0;
-        
-        if (teamPokemonError) {
-          console.warn(`Could not fetch Pokemon for team ${team.id}:`, teamPokemonError);
-        } else {
-          pokemon = (teamPokemonData || [])
-            .map((tp: any) => tp.pokemon)
-            .filter((p: any) => p !== null)
-            .map((p: any) => ({
-              id: p.id,
-              name: p.name,
-              image: p.image,
-              power: p.power,
-              life: p.life,
-              type: p.type
-            })) as Pokemon[];
-          
-          // Calculate total power from Pokemon
-          totalPower = pokemon.reduce((sum, p) => sum + p.power, 0);
-        }
-
-        teams.push({
-          id: team.id,
-          name: team.name,
-          power: totalPower,
+        return {
+          id: teamData.team_id,
+          name: teamData.team_name,
+          power: Number(teamData.total_power) || 0,
           pokemon: pokemon
-        });
-      }
+        };
+      });
 
       return teams;
       
