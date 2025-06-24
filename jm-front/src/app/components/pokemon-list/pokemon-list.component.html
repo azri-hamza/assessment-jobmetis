@@ -1,20 +1,42 @@
 <div class="container mt-4">
     <h2 class="mb-3">Pokémon List</h2>
-    <div class="row" *ngIf="pokemons.length > 0; else loading">
-      <div class="col-md-4 mb-3" *ngFor="let p of pokemons">
-        <div class="card">
-          <img [src]="p.image" [alt]="p.name" class="card-img-top" />
+    
+    <!-- Error state -->
+    <div *ngIf="error()" class="alert alert-danger" role="alert">
+      {{ error() }}
+      <button class="btn btn-sm btn-outline-danger ms-2" (click)="ngOnInit()">
+        Retry
+      </button>
+    </div>
+    
+    <!-- Loading state -->
+    <div *ngIf="loading()" class="text-center">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="mt-2">Loading Pokémon...</p>
+    </div>
+    
+    <!-- Pokemon list -->
+    <div class="row" *ngIf="!loading() && !error() && pokemons().length > 0">
+      <div class="col-md-4 mb-3" *ngFor="let pokemon of pokemons()">
+        <div class="card h-100">
+          <img [src]="pokemon.image" [alt]="pokemon.name" class="card-img-top" 
+               style="height: 200px; object-fit: cover;" />
           <div class="card-body">
-            <h5 class="card-title">{{ p.name }}</h5>
+            <h5 class="card-title">{{ pokemon.name }}</h5>
             <p class="card-text">
-              Power: {{ p.power }} | Life: {{ p.life }}
+              <strong>Type:</strong> {{ pokemon.type }}<br>
+              <strong>Power:</strong> {{ pokemon.power }}<br>
+              <strong>Life:</strong> {{ pokemon.life }}
             </p>
           </div>
         </div>
       </div>
     </div>
-
-    <ng-template #loading>
-      <p>Loading Pokémon...</p>
-    </ng-template>
+    
+    <!-- No data state -->
+    <div *ngIf="!loading() && !error() && pokemons().length === 0" class="text-center">
+      <p>No Pokémon found in the database.</p>
+    </div>
   </div>
