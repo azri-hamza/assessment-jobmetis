@@ -1,0 +1,142 @@
+<!-- Modal -->
+<div class="modal fade" [class.show]="showModal" [style.display]="showModal ? 'block' : 'none'" 
+     tabindex="-1" role="dialog" aria-labelledby="updatePokemonModalLabel" aria-hidden="true"
+     (click)="onBackdropClick($event)">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="updatePokemonModalLabel">
+          Update Pokémon: <span class="text-capitalize">{{ pokemon?.name }}</span>
+        </h5>
+        <button type="button" class="btn-close" aria-label="Close" (click)="closeModal()"></button>
+      </div>
+      
+      <form (ngSubmit)="onSubmit()" #pokemonForm="ngForm">
+        <div class="modal-body">
+          <!-- General error message -->
+          <div *ngIf="validationErrors['general']" class="alert alert-danger" role="alert">
+            {{ validationErrors['general'] }}
+          </div>
+
+          <div class="row">
+            <!-- Name field -->
+            <div class="col-md-6 mb-3">
+              <label for="pokemonName" class="form-label">Name <span class="text-danger">*</span></label>
+              <input 
+                type="text" 
+                class="form-control" 
+                [class.is-invalid]="validationErrors['name']"
+                id="pokemonName" 
+                [(ngModel)]="formData.name" 
+                name="name"
+                required>
+              <div *ngIf="validationErrors['name']" class="invalid-feedback">
+                {{ validationErrors['name'] }}
+              </div>
+            </div>
+
+            <!-- Type field -->
+            <div class="col-md-6 mb-3">
+              <label for="pokemonType" class="form-label">Type <span class="text-danger">*</span></label>
+              <select 
+                class="form-select" 
+                [class.is-invalid]="validationErrors['type']"
+                id="pokemonType" 
+                [(ngModel)]="formData.type" 
+                name="type"
+                required>
+                <option value="">Select a type...</option>
+                <option *ngFor="let type of pokemonTypes()" [value]="type.id">
+                  {{ type.name }}
+                </option>
+              </select>
+              <div *ngIf="validationErrors['type']" class="invalid-feedback">
+                {{ validationErrors['type'] }}
+              </div>
+              <div *ngIf="loadingTypes()" class="form-text">
+                <small class="text-muted">Loading types...</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <!-- Power field -->
+            <div class="col-md-6 mb-3">
+              <label for="pokemonPower" class="form-label">Power (10-100) <span class="text-danger">*</span></label>
+              <input 
+                type="number" 
+                class="form-control" 
+                [class.is-invalid]="validationErrors['power']"
+                id="pokemonPower" 
+                [(ngModel)]="formData.power" 
+                name="power"
+                min="10"
+                max="100"
+                required>
+              <div *ngIf="validationErrors['power']" class="invalid-feedback">
+                {{ validationErrors['power'] }}
+              </div>
+            </div>
+
+            <!-- Life field -->
+            <div class="col-md-6 mb-3">
+              <label for="pokemonLife" class="form-label">Life <span class="text-danger">*</span></label>
+              <input 
+                type="number" 
+                class="form-control" 
+                [class.is-invalid]="validationErrors['life']"
+                id="pokemonLife" 
+                [(ngModel)]="formData.life" 
+                name="life"
+                min="1"
+                required>
+              <div *ngIf="validationErrors['life']" class="invalid-feedback">
+                {{ validationErrors['life'] }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Image URL field -->
+          <div class="mb-3">
+            <label for="pokemonImage" class="form-label">Image URL <span class="text-danger">*</span></label>
+            <input 
+              type="url" 
+              class="form-control" 
+              [class.is-invalid]="validationErrors['image']"
+              id="pokemonImage" 
+              [(ngModel)]="formData.image" 
+              name="image"
+              required>
+            <div *ngIf="validationErrors['image']" class="invalid-feedback">
+              {{ validationErrors['image'] }}
+            </div>
+          </div>
+
+          <!-- Image preview -->
+          <div *ngIf="formData.image" class="mb-3">
+            <label class="form-label">Preview:</label>
+            <div class="text-center">
+              <img [src]="formData.image" [alt]="formData.name" 
+                   class="img-thumbnail" 
+                   style="max-height: 200px; max-width: 200px;"
+                   (error)="validationErrors['image'] = 'Invalid image URL'">
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeModal()" [disabled]="isSubmitting">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary" [disabled]="isSubmitting">
+            <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            {{ isSubmitting ? 'Updating...' : 'Update' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal backdrop -->
+<div *ngIf="showModal" class="modal-backdrop fade show"></div> 

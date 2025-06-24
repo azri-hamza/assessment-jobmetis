@@ -28,7 +28,13 @@
             <div class="card-text flex-grow-1">
               <small class="text-muted d-block mb-1"><strong>Type:</strong> {{ pokemon.type }}</small>
               <small class="text-muted d-block mb-1"><strong>Power:</strong> {{ pokemon.power }}</small>
-              <small class="text-muted d-block"><strong>Life:</strong> {{ pokemon.life }}</small>
+              <small class="text-muted d-block mb-2"><strong>Life:</strong> {{ pokemon.life }}</small>
+            </div>
+            <div class="mt-auto">
+              <button class="btn btn-primary btn-sm w-100" (click)="openUpdateModal(pokemon)">
+                <i class="bi bi-pencil-square me-1"></i>
+                Update
+              </button>
             </div>
           </div>
         </div>
@@ -40,3 +46,11 @@
       <p>No Pokémon found in the database.</p>
     </div>
   </div>
+
+  <!-- Update Modal -->
+  <app-pokemon-update-form
+    [pokemon]="selectedPokemon()"
+    [showModal]="showUpdateModal()"
+    (modalClosed)="closeUpdateModal()"
+    (pokemonUpdated)="onPokemonUpdated($event)">
+  </app-pokemon-update-form>

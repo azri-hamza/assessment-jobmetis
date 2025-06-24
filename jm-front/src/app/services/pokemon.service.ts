@@ -36,4 +36,33 @@ export class PokemonService {
       throw error;
     }
   }
+
+  async updatePokemon(id: number, pokemonData: Partial<Pokemon>): Promise<Pokemon> {
+    try {
+      const { data, error } = await supabase
+        .from('pokemon')
+        .update({
+          name: pokemonData.name,
+          image: pokemonData.image,
+          power: pokemonData.power,
+          life: pokemonData.life,
+          type: pokemonData.type
+        })
+        .eq('id', id)
+        .select('id, name, image, power, life, type')
+        .single();
+
+      if (error) {
+        console.error('Supabase update error:', error);
+        throw new Error(`Failed to update Pokémon: ${error.message}`);
+      }
+
+      console.log('Pokemon updated successfully:', data);
+      return data as Pokemon;
+      
+    } catch (error) {
+      console.error('Service update error:', error);
+      throw error;
+    }
+  }
 }
