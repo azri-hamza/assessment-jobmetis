@@ -18,18 +18,18 @@
     </div>
     
     <!-- Pokemon list -->
-    <div class="row" *ngIf="!loading() && !error() && pokemons().length > 0">
-      <div class="col-md-4 mb-3" *ngFor="let pokemon of pokemons()">
-        <div class="card h-100">
+    <div class="row g-3" *ngIf="!loading() && !error() && pokemons().length > 0">
+      <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2" *ngFor="let pokemon of pokemons()">
+        <div class="card h-100 shadow-sm">
           <img [src]="pokemon.image" [alt]="pokemon.name" class="card-img-top" 
                style="height: 200px; object-fit: cover;" />
-          <div class="card-body">
-            <h5 class="card-title">{{ pokemon.name }}</h5>
-            <p class="card-text">
-              <strong>Type:</strong> {{ pokemon.type }}<br>
-              <strong>Power:</strong> {{ pokemon.power }}<br>
-              <strong>Life:</strong> {{ pokemon.life }}
-            </p>
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title text-capitalize">{{ pokemon.name }}</h5>
+            <div class="card-text flex-grow-1">
+              <small class="text-muted d-block mb-1"><strong>Type:</strong> {{ pokemon.type }}</small>
+              <small class="text-muted d-block mb-1"><strong>Power:</strong> {{ pokemon.power }}</small>
+              <small class="text-muted d-block"><strong>Life:</strong> {{ pokemon.life }}</small>
+            </div>
           </div>
         </div>
       </div>
