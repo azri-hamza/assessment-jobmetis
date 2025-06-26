@@ -2,11 +2,13 @@ import { Injectable } from '@angular/core';
 import { supabase } from '../supabase.client';
 import { Pokemon } from './pokemon.service';
 import { Team } from './team.service';
+import { PokemonTypeService } from './pokemon-type.service';
 
 export interface BattlePokemon extends Pokemon {
   currentLife: number;
   isDefeated: boolean;
   originalLife: number;
+  typeId: string;
 }
 
 export interface BattleRound {
@@ -35,6 +37,8 @@ export interface BattleResult {
 })
 export class BattleService {
   
+  constructor(private pokemonTypeService: PokemonTypeService) {}
+  
   async getTypeEffectiveness(attackingTypeId: string, defendingTypeId: string): Promise<number> {
     try {
       const { data, error } = await supabase
@@ -56,19 +60,21 @@ export class BattleService {
     }
   }
 
-  private createBattlePokemon(pokemon: Pokemon): BattlePokemon {
+  private async createBattlePokemon(pokemon: Pokemon): Promise<BattlePokemon> {
+    const typeId = await this.pokemonTypeService.getTypeIdByName(pokemon.type);
     return {
       ...pokemon,
       currentLife: pokemon.life,
       isDefeated: false,
-      originalLife: pokemon.life
+      originalLife: pokemon.life,
+      typeId: typeId
     };
   }
 
   async simulateBattle(team1: Team, team2: Team): Promise<BattleResult> {
     // Create battle copies of Pokemon with current life tracking
-    const battleTeam1: BattlePokemon[] = team1.pokemon.map(p => this.createBattlePokemon(p));
-    const battleTeam2: BattlePokemon[] = team2.pokemon.map(p => this.createBattlePokemon(p));
+    const battleTeam1: BattlePokemon[] = await Promise.all(team1.pokemon.map(p => this.createBattlePokemon(p)));
+    const battleTeam2: BattlePokemon[] = await Promise.all(team2.pokemon.map(p => this.createBattlePokemon(p)));
 
     const rounds: BattleRound[] = [];
     let roundNumber = 1;
@@ -97,8 +103,8 @@ export class BattleService {
       const pokemon2 = battleTeam2[team2Index];
 
       // Get type effectiveness factors
-      const pokemon1TypeFactor = await this.getTypeEffectiveness(pokemon1.type, pokemon2.type);
-      const pokemon2TypeFactor = await this.getTypeEffectiveness(pokemon2.type, pokemon1.type);
+      const pokemon1TypeFactor = await this.getTypeEffectiveness(pokemon1.typeId, pokemon2.typeId);
+      const pokemon2TypeFactor = await this.getTypeEffectiveness(pokemon2.typeId, pokemon1.typeId);
 
       // Calculate damage
       const pokemon1Damage = pokemon2.power * pokemon2TypeFactor;

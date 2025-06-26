@@ -51,4 +51,25 @@ export class PokemonTypeService {
       return 'Unknown';
     }
   }
+
+  async getTypeIdByName(typeName: string): Promise<string> {
+    try {
+      const { data, error } = await supabase
+        .from('pokemon_type')
+        .select('id')
+        .eq('name', typeName)
+        .single();
+
+      if (error) {
+        console.error('Supabase error fetching type ID:', error);
+        throw new Error(`Type not found: ${typeName}`);
+      }
+
+      return data?.id || '';
+      
+    } catch (error) {
+      console.error('Service error fetching type ID:', error);
+      throw error;
+    }
+  }
 } 
