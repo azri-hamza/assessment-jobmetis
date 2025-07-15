@@ -53,11 +53,10 @@ export class TeamListComponent implements OnInit {
         (data || []).map(async (team) => {
           const pokemonWithTypeNames = await Promise.all(
             team.pokemon.map(async (pokemon) => {
-              const typeName = await this.pokemonTypeService.getTypeNameById(pokemon.type);
+              const typeId = await this.pokemonTypeService.getTypeIdByName(pokemon.type);
               return {
                 ...pokemon,
-                type: typeName,
-                typeId: pokemon.type
+                typeId: typeId
               };
             })
           );
